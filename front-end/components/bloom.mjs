@@ -1,3 +1,5 @@
+import { apiService } from "../index.mjs";
+
 /**
  * Create a bloom component
  * @param {string} template - The ID of the template to clone
@@ -7,7 +9,9 @@
  * {"id": Number,
  * "sender": username,
  * "content": "string from textarea",
- * "sent_timestamp": "datetime as ISO 8601 formatted string"}
+ * "sent_timestamp": "datetime as ISO 8601 formatted string"},
+ * "reblooms": "reblooms count",
+ * "original_bloom_id": "id of the rebloomed post"
 
  */
 const createBloom = (template, bloom) => {
@@ -20,8 +24,12 @@ const createBloom = (template, bloom) => {
   const bloomTime = bloomFrag.querySelector("[data-time]");
   const bloomTimeLink = bloomFrag.querySelector("a:has(> [data-time])");
   const bloomContent = bloomFrag.querySelector("[data-content]");
+  const rebloomButtonEl = bloomFrag.querySelector(
+    "[data-action='share-bloom']"
+  );
+  const rebloomCountEl = bloomFrag.querySelector("[data-rebloom-count]");
+  const rebloomInfoEl = bloomFrag.querySelector("[data-rebloom-info]");
 
-  bloomArticle.setAttribute("data-bloom-id", bloom.id);
   bloomUsername.setAttribute("href", `/profile/${bloom.sender}`);
   bloomUsername.textContent = bloom.sender;
   bloomTime.textContent = _formatTimestamp(bloom.sent_timestamp);
@@ -30,6 +38,23 @@ const createBloom = (template, bloom) => {
     ...bloomParser.parseFromString(_formatHashtags(bloom.content), "text/html")
       .body.childNodes
   );
+
+  rebloomCountEl.textContent = `Rebloomed ${bloom.reblooms} times`;
+  rebloomCountEl.hidden = bloom.reblooms == 0;
+  rebloomButtonEl.setAttribute("data-id", bloom.id || "");
+  rebloomButtonEl.addEventListener("click", handleRebloom);
+  rebloomInfoEl.hidden = bloom.original_bloom_id === null;
+
+  if (bloom.original_bloom_id !== null) {
+    apiService
+
+      .fetchBloomData(bloom.original_bloom_id)
+      .then((originalBloom) => {
+        const timeStamp = _formatTimestamp(originalBloom.sent_timestamp);
+
+        rebloomInfoEl.innerHTML = `&#8618; Rebloom of the ${originalBloom.sender}'s post, posted ${timeStamp} ago`;
+      });
+  }
 
   return bloomFrag;
 };
@@ -55,25 +80,22 @@ function _formatTimestamp(timestamp) {
       return `${diffSeconds}s`;
     }
 
-    // Less than an hour
     const diffMinutes = Math.floor(diffSeconds / 60);
     if (diffMinutes < 60) {
       return `${diffMinutes}m`;
     }
 
-    // Less than a day
+
     const diffHours = Math.floor(diffMinutes / 60);
     if (diffHours < 24) {
       return `${diffHours}h`;
     }
 
-    // Less than a week
     const diffDays = Math.floor(diffHours / 24);
     if (diffDays < 7) {
       return `${diffDays}d`;
     }
 
-    // Format as month and day for older dates
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",
@@ -84,4 +106,16 @@ function _formatTimestamp(timestamp) {
   }
 }
 
-export {createBloom};
+async function handleRebloom(event) {
+  const button = event.target;
+  const id = button.getAttribute("data-id");
+  if (!id) return;
+
+  await apiService.postRebloom(id);
+}
+
+export { createBloom, handleRebloom };
+
+
+
+
