@@ -245,6 +245,37 @@ def suggested_follows(limit_str):
     return jsonify(suggestions)
 
 
+def update_rebloom_counter(bloom_id):
+    try:
+        id_int = int(bloom_id)
+    except ValueError:
+        return make_response((f"Invalid bloom id", 400))
+    blooms.update_rebloom_counter(id_int)
+    return jsonify(
+        {
+            "success": True,
+        }
+    )
+
+
+@jwt_required()
+def send_rebloom():
+    user = get_current_user()
+    bloom_id = request.json["id"]
+    try:
+        id_int = int(bloom_id)
+    except ValueError:
+        return make_response((f"Invalid bloom id", 400))
+    blooms.add_rebloom(sender=user, id=id_int)
+
+    return jsonify(
+        {
+            "success": True,
+        }
+    )
+
+
+
 def hashtag(hashtag):
     return jsonify(blooms.get_blooms_with_hashtag(hashtag))
 
