@@ -152,8 +152,20 @@ def do_follow():
 
 MAX_BLOOM_LENGTH = 280
 
+def normalize_message(message: str) -> str:
+    return message.strip()
+
 def is_valid_message(message: str, max_length=MAX_BLOOM_LENGTH) -> bool:
-    return len(message.strip()) <= max_length
+    normalized = normalize_message(message)
+
+    if not normalized:
+        return False
+
+    if len(normalized) > max_length:
+        return False
+
+    return True
+
 
 @jwt_required()
 def send_bloom():
