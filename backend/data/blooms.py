@@ -61,7 +61,9 @@ def get_blooms_for_user(
 
         cur.execute(
             f"""SELECT
-              blooms.id, users.username, content, send_timestamp, reblooms, original_bloom_id 
+              blooms.id, users.username, content, send_timestamp,
+              (SELECT COUNT(*) FROM blooms b2 WHERE b2.original_bloom_id = blooms.id) AS reblooms,
+              original_bloom_id
             FROM
               blooms INNER JOIN users ON users.id = blooms.sender_id
             WHERE
@@ -99,7 +101,7 @@ def get_blooms_for_user(
 def get_bloom(bloom_id: int) -> Optional[Bloom]:
     with db_cursor() as cur:
         cur.execute(
-            "SELECT blooms.id, users.username, content, send_timestamp, reblooms, original_bloom_id FROM blooms INNER JOIN users ON users.id = blooms.sender_id WHERE blooms.id = %s",
+            "SELECT blooms.id, users.username, content, send_timestamp, (SELECT COUNT(*) FROM blooms b2 WHERE b2.original_bloom_id = blooms.id) AS reblooms, original_bloom_id FROM blooms INNER JOIN users ON users.id = blooms.sender_id WHERE blooms.id = %s",
             (bloom_id,),
         )
         row = cur.fetchone()
@@ -126,7 +128,9 @@ def get_blooms_with_hashtag(
     with db_cursor() as cur:
         cur.execute(
             f"""SELECT
-              blooms.id, users.username, content, send_timestamp, reblooms, original_bloom_id
+              blooms.id, users.username, content, send_timestamp,
+              (SELECT COUNT(*) FROM blooms b2 WHERE b2.original_bloom_id = blooms.id) AS reblooms,
+              original_bloom_id
             FROM
               blooms INNER JOIN hashtags ON blooms.id = hashtags.bloom_id INNER JOIN users ON blooms.sender_id = users.id
             WHERE
@@ -160,20 +164,11 @@ def get_blooms_with_hashtag(
     return blooms
 
 
-def update_rebloom_counter(bloom_id: int) -> None:
-    with db_cursor() as cur:
-        cur.execute(
-            "UPDATE blooms SET reblooms = reblooms + 1 WHERE blooms.id = %s",
-            (bloom_id,),
-        )
-
-
 def add_rebloom(*, sender: User, id: int) -> None:
     original_bloom = get_bloom(id)
     if not original_bloom:
         return None
     content = original_bloom.content
-    update_rebloom_counter(id)
     add_bloom(sender=sender, content=content, original_bloom_id=id)
 
 
