@@ -151,23 +151,6 @@ def do_follow():
 
 
 @jwt_required()
-def do_unfollow(unfollow_username):
-    current_user = get_current_user()
-    unfollow_user = get_user(unfollow_username)
-
-    if unfollow_user is None:
-        return make_response(
-            (f"Cannot unfollow {unfollow_username} - user does not exist", 404)
-        )
-
-    unfollow(current_user, unfollow_user)
-    return jsonify(
-        {
-            "success": True,
-        }
-    )
-
-@jwt_required()
 def send_bloom():
     type_check_error = verify_request_fields({"content": str})
     if type_check_error is not None:
