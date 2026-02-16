@@ -24,7 +24,7 @@ def add_bloom(
 
     now = datetime.datetime.now(tz=datetime.UTC)
     bloom_id = int(now.timestamp() * 1000000)
-    print(original_bloom_id)
+
     with db_cursor() as cur:
         cur.execute(
             "INSERT INTO blooms (id, sender_id, content, send_timestamp, reblooms, original_bloom_id) VALUES (%(bloom_id)s, %(sender_id)s, %(content)s, %(timestamp)s, %(reblooms)s,%(original_bloom_id)s)",
