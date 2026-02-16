@@ -46,7 +46,7 @@ async function _apiRequest(endpoint, options = {}) {
         }
       }
 
-
+      // Pass all errors forward to a dialog on the screen
       handleErrorDialog(error);
       throw error;
     }
@@ -57,14 +57,14 @@ async function _apiRequest(endpoint, options = {}) {
       : { success: true };
   } catch (error) {
     if (!error.status) {
-
+      // Only handle network errors here, response errors are handled above
       handleErrorDialog(error);
     }
-    throw error; 
+    throw error; // Re-throw so it can be caught by the calling function
   }
 }
 
-
+// Local helper to update a profile in the profiles array
 function _updateProfile(username, profileData) {
   const profiles = [...state.profiles];
   const index = profiles.findIndex((p) => p.username === username);
@@ -77,6 +77,7 @@ function _updateProfile(username, profileData) {
   state.updateState({ profiles });
 }
 
+// ====== AUTH methods
 async function login(username, password) {
   try {
     const data = await _apiRequest("/login", {
@@ -107,7 +108,7 @@ async function getWhoToFollow() {
 
     return usernamesToFollow;
   } catch (error) {
-
+    // Error already handled by _apiRequest
     state.updateState({ usernamesToFollow: [] });
     return [];
   }
@@ -140,14 +141,13 @@ function logout() {
   return { success: true };
 }
 
-
+// ===== BLOOM methods
 async function getBloom(bloomId) {
   const endpoint = `/bloom/${bloomId}`;
   const bloom = await _apiRequest(endpoint);
   state.updateState({ singleBloomToShow: bloom });
   return bloom;
 }
-
 
 async function fetchBloomData(bloomId) {
   const endpoint = `/bloom/${bloomId}`;
@@ -169,7 +169,7 @@ async function getBlooms(username) {
 
     return blooms;
   } catch (error) {
-
+    // Error already handled by _apiRequest
     if (username) {
       _updateProfile(username, { blooms: [] });
     } else {

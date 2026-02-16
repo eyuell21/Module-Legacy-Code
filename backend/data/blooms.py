@@ -27,13 +27,12 @@ def add_bloom(
 
     with db_cursor() as cur:
         cur.execute(
-            "INSERT INTO blooms (id, sender_id, content, send_timestamp, reblooms, original_bloom_id) VALUES (%(bloom_id)s, %(sender_id)s, %(content)s, %(timestamp)s, %(reblooms)s,%(original_bloom_id)s)",
+            "INSERT INTO blooms (id, sender_id, content, send_timestamp, original_bloom_id) VALUES (%(bloom_id)s, %(sender_id)s, %(content)s, %(timestamp)s, %(original_bloom_id)s)",
             dict(
                 bloom_id=bloom_id,
                 sender_id=sender.id,
                 content=content,
                 timestamp=datetime.datetime.now(datetime.UTC),
-                reblooms=0,
                 original_bloom_id=original_bloom_id,
             ),
         )
