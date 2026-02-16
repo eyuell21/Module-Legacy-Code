@@ -176,14 +176,16 @@ def send_bloom():
     content = request.json["content"]
     user = get_current_user()
 
-    blooms.add_bloom(sender=user, content=content)
-
+    # Normalize and validate content before saving
+    normalized_content = normalize_message(content)
 
     if not is_valid_message(content):
         return jsonify({
             "success": False,
             "error": f"Content exceeds {MAX_BLOOM_LENGTH} characters."
         }), 400
+
+    blooms.add_bloom(sender=user, content=normalized_content)
 
     return jsonify(
         {
