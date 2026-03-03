@@ -13,14 +13,14 @@ import {createProfile, handleFollow} from "../components/profile.mjs";
 import {createBloom} from "../components/bloom.mjs";
 
 // Profile view - just this person's blooms and their profile
-function profileView(username) {
+async function profileView(username) {
   destroy();
 
   const existingProfile = state.profiles.find((p) => p.username === username);
 
   // Only fetch profile if we don't have it or if it's incomplete
   if (!existingProfile || !existingProfile.recent_blooms) {
-    apiService.getProfile(username);
+    await apiService.getProfile(username);
   }
 
   renderOne(
