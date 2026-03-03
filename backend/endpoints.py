@@ -152,19 +152,17 @@ def do_follow():
 
 MAX_BLOOM_LENGTH = 280
 
-def normalize_message(message: str) -> str:
-    return message.strip()
+def is_valid_message(message: str, max_length=MAX_BLOOM_LENGTH) -> str:
 
-def is_valid_message(message: str, max_length=MAX_BLOOM_LENGTH) -> bool:
-    normalized = normalize_message(message)
+    normalized = message.strip()
 
     if not normalized:
-        return False
+        raise ValueError("Message cannot be empty.")
 
     if len(normalized) > max_length:
-        return False
+        raise ValueError(f"Content exceeds {max_length} characters.")
 
-    return True
+    return normalized
 
 
 @jwt_required()
@@ -176,13 +174,12 @@ def send_bloom():
     content = request.json["content"]
     user = get_current_user()
 
-    # Normalize and validate content before saving
-    normalized_content = normalize_message(content)
-
-    if not is_valid_message(content):
+    try:
+        normalized_content = is_valid_message(content)
+    except ValueError as error:
         return jsonify({
             "success": False,
-            "error": f"Content exceeds {MAX_BLOOM_LENGTH} characters."
+            "error": str(error)
         }), 400
 
     blooms.add_bloom(sender=user, content=normalized_content)
