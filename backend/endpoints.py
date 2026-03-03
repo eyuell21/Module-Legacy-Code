@@ -152,7 +152,7 @@ def do_follow():
 
 MAX_BLOOM_LENGTH = 280
 
-def is_valid_message(message: str, max_length=MAX_BLOOM_LENGTH) -> str:
+def normalize_message(message: str, max_length=MAX_BLOOM_LENGTH) -> str:
 
     normalized = message.strip()
 
