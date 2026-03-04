@@ -175,7 +175,7 @@ def send_bloom():
     user = get_current_user()
 
     try:
-        normalized_content = is_valid_message(content)
+        normalized_content = normalize_message(content)
     except ValueError as error:
         return jsonify({
             "success": False,
